@@ -8,6 +8,11 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+async def read_index():
+    return FileResponse("static/index.html") # Path to your main HTML file
 
 # Enable CORS so your HTML file can talk to this script
 app.add_middleware(
@@ -121,3 +126,4 @@ def predict(year: int, date: str, shift: str, marks: float):
 
 
 # Start with: uvicorn main:app --reload
+
