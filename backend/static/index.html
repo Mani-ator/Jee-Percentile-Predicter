@@ -199,7 +199,7 @@
         let mouse = { x: -2000, y: -2000 };
         let shootingStar = { x: 0, y: 0, vx: 0, vy: 0, active: false, len: 0, opacity: 0 };
 
-        // REPLACE THE URL BELOW WITH YOUR ACTUAL RAILWAY LINK
+        // YOUR UPDATED RAILWAY BACKEND URL
         const API_BASE = "https://jee-percentile-predicter-production.up.railway.app";
 
         function init() {
@@ -292,11 +292,14 @@
             if(!y) return;
             try {
                 const res = await fetch(`${API_BASE}/get_dates?year=${y}`);
+                if (!res.ok) throw new Error("Backend response error");
                 const data = await res.json();
                 const ds = document.getElementById('date');
                 ds.innerHTML = '<option value="" disabled selected>DATE</option>' + 
                                data.map(d => `<option value="${d}">${d}</option>`).join('');
-            } catch(e) { console.error("Could not fetch dates"); }
+            } catch(e) { 
+                console.error("Could not fetch dates:", e); 
+            }
         }
 
         async function getPrediction() {
@@ -327,7 +330,7 @@
                     document.getElementById('rank-display').innerText = data.predicted_rank.toLocaleString();
                 }
             } catch(e) { 
-                alert("Failed to connect to the backend. Is your database connected?"); 
+                alert("Failed to connect to the backend. Check console (F12)."); 
             } finally { 
                 btn.innerText = "ANALYZE"; 
                 btn.disabled = false; 
@@ -335,16 +338,24 @@
         }
 
         window.onmousemove = e => { mouse.x = e.clientX; mouse.y = e.clientY; };
+        
         window.onload = async () => {
             init(); loop();
+            console.log("Connecting to API at:", API_BASE);
             try {
                 const res = await fetch(`${API_BASE}/get_years`);
+                if (!res.ok) throw new Error("Server status: " + res.status);
                 const years = await res.json();
+                console.log("Successfully fetched years:", years);
                 const yearSelect = document.getElementById('year');
                 yearSelect.innerHTML = '<option value="" disabled selected>BATCH</option>' + 
                                        years.map(y => `<option value="${y}">${y}</option>`).join('');
-            } catch(e) { console.error("Could not fetch years from " + API_BASE); }
+            } catch(e) { 
+                console.error("Critical: Could not fetch years.", e);
+                alert("Data loading failed. Check if your database is connected in Railway.");
+            }
         };
+
         window.onresize = init;
     </script>
 </body>
