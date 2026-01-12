@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import mysql.connector
 import json
+import os
 import numpy as np
 from scipy.interpolate import interp1d
 
@@ -126,4 +127,5 @@ def predict(year: int, date: str, shift: str, marks: float):
 
 
 # Start with: uvicorn main:app --reload
+
 
