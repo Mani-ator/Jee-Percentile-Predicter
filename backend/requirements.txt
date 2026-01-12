@@ -1,6 +1,0 @@
-fastapi
-uvicorn
-mysql-connector-python
-numpy
-sqlalchemy
-scipy
