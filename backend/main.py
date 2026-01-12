@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import mysql.connector
@@ -116,5 +117,6 @@ def predict(year: int, date: str, shift: str, marks: float):
         return {"error": f"Math Error: {str(e)}"}
     finally:
         conn.close()
+
 
 # Start with: uvicorn main:app --reload
