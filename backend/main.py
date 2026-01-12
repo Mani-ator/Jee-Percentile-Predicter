@@ -33,14 +33,17 @@ async def read_index():
 
 # Database Connection Helper
 def get_db_connection():
-    return mysql.connector.connect(
-        # These names must match your Railway Variables tab exactly
-        host=os.getenv("MYSQLHOST"),
-        user=os.getenv("MYSQLUSER"),
-        password=os.getenv("MYSQLPASSWORD"),
-        database=os.getenv("MYSQLDATABASE"),
-        port=int(os.getenv("MYSQLPORT", 3306))
-    )
+    try:
+        return mysql.connector.connect(
+            host=os.getenv("MYSQLHOST"),
+            user=os.getenv("MYSQLUSER"),
+            password=os.getenv("MYSQLPASSWORD"),
+            database=os.getenv("MYSQLDATABASE"),
+            port=int(os.getenv("MYSQLPORT", 3306))
+        )
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return None
 
 @app.get("/get_years")
 def get_years():
@@ -126,4 +129,5 @@ def predict(year: int, date: str, shift: str, marks: float):
         return {"error": f"Math Error: {str(e)}"}
     finally:
         conn.close()
+
 
