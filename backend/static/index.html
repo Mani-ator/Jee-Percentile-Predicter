@@ -87,7 +87,7 @@
         .marquee-text {
             display: inline-block; 
             white-space: nowrap;
-            animation: scroll 150s linear infinite; /* Increased from 80s to 150s */
+            animation: scroll 150s linear infinite;
             color: rgba(255, 255, 255, 0.3); 
             font-size: 10px; 
             letter-spacing: 4px; 
@@ -197,11 +197,10 @@
         const ctx = canvas.getContext('2d');
         let width, height, stars = [];
         let mouse = { x: -2000, y: -2000 };
-        
         let shootingStar = { x: 0, y: 0, vx: 0, vy: 0, active: false, len: 0, opacity: 0 };
 
-        // CHANGE THIS TO YOUR ACTUAL BACKEND URL IF DEPLOYED
-        const API_BASE = "http://127.0.0.1:8000";
+        // REPLACE THE URL BELOW WITH YOUR ACTUAL RAILWAY LINK
+        const API_BASE = "https://jee-percentile-predicter-production.up.railway.app";
 
         function init() {
             width = canvas.width = window.innerWidth;
@@ -307,11 +306,7 @@
             const marks = document.getElementById('marks').value;
             
             if(!year || !date || !shift || !marks) {
-                return alert("Please select all cosmic coordinates (Fill all fields).");
-            }
-
-            if(marks < 0 || marks > 300) {
-                return alert("Score must be between 0 and 300.");
+                return alert("Please select all cosmic coordinates.");
             }
 
             const btn = document.getElementById('predict-btn');
@@ -332,9 +327,9 @@
                     document.getElementById('rank-display').innerText = data.predicted_rank.toLocaleString();
                 }
             } catch(e) { 
-                alert("The cosmic connection failed (Server Error). Check if your backend is running."); 
+                alert("Failed to connect to the backend. Is your database connected?"); 
             } finally { 
-                btn.innerText = "ANALYZE DESTINY"; 
+                btn.innerText = "ANALYZE"; 
                 btn.disabled = false; 
             }
         }
@@ -348,7 +343,7 @@
                 const yearSelect = document.getElementById('year');
                 yearSelect.innerHTML = '<option value="" disabled selected>BATCH</option>' + 
                                        years.map(y => `<option value="${y}">${y}</option>`).join('');
-            } catch(e) { console.error("Could not fetch years"); }
+            } catch(e) { console.error("Could not fetch years from " + API_BASE); }
         };
         window.onresize = init;
     </script>
