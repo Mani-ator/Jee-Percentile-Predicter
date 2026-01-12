@@ -34,11 +34,12 @@ async def read_index():
 # Database Connection Helper
 def get_db_connection():
     return mysql.connector.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASS", "123456789"),
-        database=os.getenv("DB_NAME", "jee_predictor"),
-        port=int(os.getenv("DB_PORT", 3306))
+        # These names must match your Railway Variables tab exactly
+        host=os.getenv("MYSQLHOST"),
+        user=os.getenv("MYSQLUSER"),
+        password=os.getenv("MYSQLPASSWORD"),
+        database=os.getenv("MYSQLDATABASE"),
+        port=int(os.getenv("MYSQLPORT", 3306))
     )
 
 @app.get("/get_years")
@@ -125,3 +126,4 @@ def predict(year: int, date: str, shift: str, marks: float):
         return {"error": f"Math Error: {str(e)}"}
     finally:
         conn.close()
+
