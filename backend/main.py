@@ -1,6 +1,8 @@
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import mysql.connector
 import json
 import numpy as np
@@ -8,13 +10,26 @@ from scipy.interpolate import interp1d
 
 app = FastAPI()
 
-# Enable CORS so your HTML file can talk to this script
+# 1. Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 2. Serve Static Files (CSS, JS, Images)
+# Move your frontend files into backend/static/
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# 3. Serve the Frontend (index.html)
+@app.get("/")
+async def read_index():
+    index_path = os.path.join("static", "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"error": "Frontend files not found. Ensure index.html is in backend/static/"}
 
 # Database Connection Helper
 def get_db_connection():
@@ -60,13 +75,11 @@ def predict(year: int, date: str, shift: str, marks: float):
     try:
         cursor = conn.cursor(dictionary=True)
         
-        # 1. Get Paper ID
         cursor.execute("SELECT id FROM papers WHERE year=%s AND date=%s AND shift=%s", (year, date, shift))
         paper = cursor.fetchone()
         if not paper:
             return {"error": "Shift not found in database."}
 
-        # 2. Get Percentile Data
         cursor.execute("""
             SELECT pc.curve_data, ds.reliability_weight 
             FROM percentile_curves pc
@@ -78,19 +91,16 @@ def predict(year: int, date: str, shift: str, marks: float):
         if not results:
             return {"error": "No data curves found for this shift."}
 
-        # 3. Get Candidate Stats (with a Fallback to prevent crashes)
         cursor.execute("SELECT total_candidates FROM annual_stats WHERE year = %s", (year,))
         stats = cursor.fetchone()
         total_candidates = stats['total_candidates'] if (stats and stats['total_candidates']) else 1250000
 
-        # 4. Weighted Interpolation
         total_weighted_p, total_weight = 0, 0
         for res in results:
             curve = json.loads(res['curve_data'])
             x = np.array([float(m) for m in curve.keys()])
             y = np.array([float(p) for p in curve.values()])
             
-            # Sort and interpolate
             idx = np.argsort(x)
             f = interp1d(x[idx], y[idx], kind='linear', fill_value="extrapolate")
             
@@ -100,8 +110,6 @@ def predict(year: int, date: str, shift: str, marks: float):
             total_weight += weight
 
         avg_p = total_weighted_p / total_weight
-        
-        # 5. Rank Formula: ((100 - Percentile) / 100) * Total Candidates
         predicted_rank = int(((100 - avg_p) / 100) * total_candidates) + 1
 
         return {
@@ -117,6 +125,3 @@ def predict(year: int, date: str, shift: str, marks: float):
         return {"error": f"Math Error: {str(e)}"}
     finally:
         conn.close()
-
-
-# Start with: uvicorn main:app --reload
